@@ -25,6 +25,11 @@ rules:
 
   # --- Рабочие сервисы в браузере ---
   - match: url
+    pattern: 'planfix\.(ru|com|ua)'
+    category: work
+    label: 'Планфикс'
+    task_from_title: '^(?P<task>[^/]{3,}?)\s*(?:/|\s[-—|]\s*(?:Planfix|Планфикс))'
+
   - match: url
     pattern: 'docs\.google\.com/document'
     category: work
