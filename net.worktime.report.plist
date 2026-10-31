@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>net.worktime.report</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/python3</string>
+    <string>/Users/YOUR_USERNAME/worktime/worktime_report.py</string>
+    <string>--days</string>
+    <string>2</string>
+    <string>--include-today</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/YOUR_USERNAME/worktime</string>
+
+  <!-- Запускается при каждом пробуждении мака.
+       Скрипт ждёт сеть до 60 секунд, потом пишет в таблицу.
+       Данные просто перезаписываются — это безопасно. -->
+  <key>StartOnMount</key>
+  <false/>
+
+  <!-- При пробуждении из сна -->
+  <key>OnDemand</key>
+  <false/>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <false/>
+
+  <!-- Дополнительно — по расписанию раз в час как страховка -->
+  <key>StartInterval</key>
+  <integer>3600</integer>
+
+  <key>StandardOutPath</key>
+  <string>/Users/YOUR_USERNAME/Library/Logs/ActivityWatch/worktime-report.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/YOUR_USERNAME/Library/Logs/ActivityWatch/worktime-report-error.log</string>
+</dict>
+</plist>

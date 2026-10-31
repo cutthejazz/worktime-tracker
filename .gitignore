@@ -1,0 +1,6 @@
+oauth_creds.json
+oauth_token.json
+__pycache__/
+*.pyc
+*.bak
+.DS_Store

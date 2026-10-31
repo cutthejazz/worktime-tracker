@@ -1,0 +1,332 @@
+# Правила категоризации. Проверяются СВЕРХУ ВНИЗ, срабатывает первое совпадение.
+# Интерфейс системы и приложений — украинский, названия приложений указаны
+# в украинской локали, где это применимо (плюс английские варианты на всякий случай).
+#
+# category: work | neutral | personal
+#   work     — считается рабочим временем
+#   neutral  — фоновое (музыка, мессенджеры). В итог не идёт, но видно в отчёте.
+#   personal — нерабочее
+#
+# match: app   — подстрока в имени приложения (регистр не важен)
+# match: url   — регулярка по URL вкладки браузера
+# match: title — регулярка по заголовку окна/вкладки
+
+rules:
+  # --- Музыка ДО общего правила youtube.com, иначе перехватит ---
+  - match: url
+    pattern: 'music\.youtube\.com'
+    category: neutral
+    label: 'YouTube Music (фон)'
+
+  - match: url
+    pattern: 'open\.spotify\.com'
+    category: neutral
+    label: 'Spotify (фон)'
+
+  # --- Рабочие сервисы в браузере ---
+  - match: url
+  - match: url
+    pattern: 'docs\.google\.com/document'
+    category: work
+    label: 'Google Docs'
+    task_from_title: '^(?P<task>.+?)\s*[-—]\s*Google\s*(Docs|Документи|Документы)'
+
+  - match: url
+    pattern: 'docs\.google\.com/spreadsheets'
+    category: work
+    label: 'Google Sheets'
+    task_from_title: '^(?P<task>.+?)\s*[-—]\s*Google\s*(Sheets|Таблиці|Таблицы)'
+
+  - match: url
+    pattern: 'docs\.google\.com/presentation'
+    category: work
+    label: 'Google Slides'
+    task_from_title: '^(?P<task>.+?)\s*[-—]\s*Google\s*(Slides|Презентації)'
+
+  - match: url
+    pattern: 'drive\.google\.com'
+    category: work
+    label: 'Google Drive'
+
+  - match: url
+    pattern: 'mail\.google\.com'
+    category: work
+    label: 'Gmail'
+
+  - match: url
+    pattern: 'calendar\.google\.com'
+    category: work
+    label: 'Google Calendar'
+
+  - match: url
+    pattern: 'chatgpt\.com|claude\.ai|perplexity\.ai|gemini\.google\.com'
+    category: work
+    label: 'AI-ассистенты'
+
+  - match: url
+    pattern: 'github\.com|github\.io|stackoverflow\.com'
+    category: work
+    label: 'Разработка (веб)'
+
+  - match: url
+    pattern: 'figma\.com|miro\.com|canva\.com'
+    category: work
+    label: 'Дизайн-сервисы'
+
+  - match: url
+    pattern: 'notion\.so|trello\.com|atlassian\.net|asana\.com'
+    category: work
+    label: 'Таск-трекеры'
+
+  - match: url
+    pattern: 'meet\.google\.com|zoom\.us'
+    category: work
+    label: 'Созвоны'
+
+  - match: url
+    pattern: 'inweb\.ua|vikneo\.app'
+    category: work
+    label: 'Рабочие ресурсы Inweb'
+
+  - match: url
+    pattern: 'chromewebstore\.google\.com'
+    category: neutral
+    label: 'Настройка браузера'
+
+  - match: url
+    pattern: 'projects2\.aks\.od\.ua'
+    category: work
+    label: 'AKS Projects'
+
+  - match: url
+    pattern: 'one\.netpeak\.group'
+    category: work
+    label: 'Netpeak Group'
+
+  - match: url
+    pattern: 'cabinet\.tax\.gov\.ua'
+    category: work
+    label: 'Податковий кабінет'
+
+  # --- Явно нерабочее ---
+  - match: url
+    pattern: 'youtube\.com'
+    category: personal
+    label: 'YouTube'
+
+  - match: url
+    pattern: 'netflix\.com|megogo\.net|sweet\.tv|twitch\.tv|kinopoisk\.ru'
+    category: personal
+    label: 'Видео и стриминг'
+
+  - match: url
+    pattern: 'instagram\.com|facebook\.com|tiktok\.com|reddit\.com|x\.com|twitter\.com'
+    category: personal
+    label: 'Соцсети'
+
+  - match: url
+    pattern: 'rozetka\.com|olx\.ua|aliexpress\.com|prom\.ua'
+    category: personal
+    label: 'Магазины'
+
+  # --- Приложения (украинская локаль + английские варианты) ---
+  - match: app
+    pattern: 'Термінал'
+    category: work
+    label: 'Терминал'
+  - match: app
+    pattern: 'Terminal'
+    category: work
+    label: 'Терминал'
+  - match: app
+    pattern: 'iTerm'
+    category: work
+    label: 'Терминал'
+
+  - match: app
+    pattern: 'Visual Studio Code'
+    category: work
+    label: 'VS Code'
+  - match: app
+    pattern: 'Xcode'
+    category: work
+    label: 'Xcode'
+
+  - match: app
+    pattern: 'Slack'
+    category: work
+    label: 'Slack'
+
+  - match: app
+    pattern: 'zoom'
+    category: work
+    label: 'Zoom'
+
+  - match: app
+    pattern: 'Claude'
+    category: work
+    label: 'Claude'
+
+  - match: app
+    pattern: 'Пошта'
+    category: work
+    label: 'Почта'
+  - match: app
+    pattern: 'Mail'
+    category: work
+    label: 'Почта'
+
+  - match: app
+    pattern: 'Нотатки'
+    category: work
+    label: 'Заметки'
+  - match: app
+    pattern: 'Notes'
+    category: work
+    label: 'Заметки'
+
+  - match: app
+    pattern: 'Перегляд'
+    category: work
+    label: 'Просмотр документов'
+  - match: app
+    pattern: 'Preview'
+    category: work
+    label: 'Просмотр документов'
+
+  - match: app
+    pattern: 'Календар'
+    category: work
+    label: 'Календарь'
+  - match: app
+    pattern: 'Calendar'
+    category: work
+    label: 'Календарь'
+
+  - match: app
+    pattern: 'Сторінки'
+    category: work
+    label: 'Pages'
+  - match: app
+    pattern: 'Pages'
+    category: work
+    label: 'Pages'
+
+  - match: app
+    pattern: 'Numbers'
+    category: work
+    label: 'Numbers'
+
+  - match: app
+    pattern: 'Keynote'
+    category: work
+    label: 'Keynote'
+
+  - match: app
+    pattern: 'Microsoft Word'
+    category: work
+    label: 'Word'
+  - match: app
+    pattern: 'Microsoft Excel'
+    category: work
+    label: 'Excel'
+
+  - match: app
+    pattern: 'ChatGPT'
+    category: work
+    label: 'ChatGPT'
+
+  - match: app
+    pattern: 'joxi'
+    category: work
+    label: 'Скриншоты (Joxi)'
+
+  - match: app
+    pattern: 'Оглядач'
+    category: neutral
+    label: 'Просмотрщик'
+
+  - match: app
+    pattern: 'Viber'
+    category: personal
+    label: 'Viber'
+
+  - match: app
+    pattern: 'loginwindow'
+    category: personal
+    label: 'Экран блокировки'
+
+  - match: app
+    pattern: 'universalAccessAuthWarn'
+    category: neutral
+    label: 'Системный диалог'
+
+  - match: app
+    pattern: 'Finder'
+    category: neutral
+    label: 'Finder'
+
+  - match: app
+    pattern: 'Telegram'
+    category: work
+    label: 'Telegram'
+  - match: app
+    pattern: 'WhatsApp'
+    category: neutral
+    label: 'WhatsApp'
+
+  - match: app
+    pattern: 'Музика'
+    category: neutral
+    label: 'Музыка (фон)'
+  - match: app
+    pattern: 'Music'
+    category: neutral
+    label: 'Музыка (фон)'
+  - match: app
+    pattern: 'Spotify'
+    category: neutral
+    label: 'Музыка (фон)'
+
+  - match: app
+    pattern: 'Системні параметри'
+    category: neutral
+    label: 'Системные настройки'
+  - match: app
+    pattern: 'System Settings'
+    category: neutral
+    label: 'Системные настройки'
+
+  - match: app
+    pattern: 'Фото'
+    category: personal
+    label: 'Фото'
+  - match: app
+    pattern: 'Photos'
+    category: personal
+    label: 'Фото'
+  - match: app
+    pattern: 'Steam'
+    category: personal
+    label: 'Игры'
+
+default_category: uncategorized
+
+# Встречи учитываются целиком: от первой до последней отметки, даже если
+# ты переключалась на другие задачи и не трогала мышь. Пересечение с обычной
+# работой не удваивается — итог считается по объединению интервалов.
+meetings:
+  label: 'Созвоны (встречи)'
+  url_patterns:
+    - 'meet\.google\.com'
+    - 'zoom\.us/(j|wc)/'
+    - 'teams\.microsoft\.com'
+    - 'whereby\.com'
+  apps:
+    - 'zoom'
+  # Разрыв короче этого времени считается частью той же встречи
+  gap_minutes: 30
+
+settings:
+  browsers: ['Google Chrome', 'Chrome', 'Safari', 'Firefox', 'Arc', 'Brave', 'Comet']
+  min_event_seconds: 5
