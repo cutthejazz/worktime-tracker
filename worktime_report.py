@@ -439,14 +439,17 @@ def push_to_sheets(days, _attempt=1):
     ws = ensure_ws(sh, "Сводка", summary_header, 400, 6,
                    banner="Облік робочого часу — Зведення")
 
-    # Читаем существующие строки, заменяем только даты текущего запроса.
-    # Логика идентична Детализации: kept + new → история не теряется никогда.
+    # Читаем ВСЕ существующие строки с датами — из любого места таблицы.
+    # kept + new → история не теряется никогда.
     update_dates = {d["date"] for d in days}
-    existing_raw = ws.get_all_values()[2:]
-    kept_summary = [r[:5] for r in existing_raw
-                    if r and r[0].strip()
-                    and r[0] not in update_dates
-                    and not str(r[0]).startswith("Баланс")]
+    # Читаємо всі рядки таблиці (не тільки від рядка 3, а повністю)
+    all_existing = ws.get_all_values()
+    # Збираємо ВСІ рядки з датами у форматі YYYY-MM-DD з будь-якого місця
+    import re as _re
+    existing_date_rows = {}
+    for r in all_existing:
+        if r and r[0] and _re.match(r'\d{4}-\d{2}-\d{2}', str(r[0]).strip()):
+            existing_date_rows[r[0].strip()] = r[:5]
 
     new_rows = []
     for d in days:
@@ -456,11 +459,21 @@ def push_to_sheets(days, _attempt=1):
                          hhmm(d["by_category"].get("personal", 0)),
                          hhmm(d["by_category"].get("uncategorized", 0))])
 
-    ordered = sorted(kept_summary + new_rows, key=lambda r: r[0])
+    # Об'єднуємо: всі існуючі дати + нові (нові перекривають старі для тих самих дат)
+    merged = dict(existing_date_rows)
+    for r in new_rows:
+        merged[r[0]] = r
+    ordered = sorted(merged.values(), key=lambda r: r[0])
 
-    ws.batch_clear(["A3:E400"])
-    if ordered:
-        ws.update(values=ordered, range_name=f"A3:E{len(ordered) + 2}")
+    existing_summary_count = len(existing_date_rows)
+    summary_safe = (existing_summary_count == 0) or (len(ordered) >= existing_summary_count)
+    if not summary_safe:
+        print(f"! Сводка: було {existing_summary_count} рядків, стало {len(ordered)}, "
+              f"пропускаємо запис щоб не затерти історію", file=sys.stderr)
+    else:
+        ws.batch_clear(["A3:E400"])
+        if ordered:
+            ws.update(values=ordered, range_name=f"A3:E{len(ordered) + 2}")
 
     # --- Лист «Детализация»: строки за перезаписываемые дни удаляются целиком
     detail_header = ["Date", "Category", "App / Service", "Task", "Time", "Link"]
