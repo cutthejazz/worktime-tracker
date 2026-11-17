@@ -471,9 +471,13 @@ def push_to_sheets(days, _attempt=1):
         print(f"! Сводка: було {existing_summary_count} рядків, стало {len(ordered)}, "
               f"пропускаємо запис щоб не затерти історію", file=sys.stderr)
     else:
-        ws.batch_clear(["A3:E400"])
+        # Сначала записываем проверенные данные; старый хвост удаляем только после
+        # успешной записи. Если запись завершится ошибкой, история останется на месте.
         if ordered:
             ws.update(values=ordered, range_name=f"A3:E{len(ordered) + 2}")
+            first_stale_row = len(ordered) + 3
+            if first_stale_row <= ws.row_count:
+                ws.batch_clear([f"A{first_stale_row}:E{ws.row_count}"])
 
     # --- Лист «Детализация»: строки за перезаписываемые дни удаляются целиком
     detail_header = ["Date", "Category", "App / Service", "Task", "Time", "Link"]
@@ -517,9 +521,13 @@ def push_to_sheets(days, _attempt=1):
         print(f"! Детализация: було {existing_detail_count} строк, стало {len(final)}, "
               f"пропускаем запись чтобы не затереть историю", file=sys.stderr)
     else:
-        ws2.batch_clear(["A3:F5000"])
+        # Не очищаем лист до записи: сбой запроса update больше не может оставить
+        # детализацию пустой. При ошибке очистки хвоста старые строки сохранятся.
         if final:
             ws2.update(values=final, range_name=f"A3:F{len(final) + 2}", value_input_option="USER_ENTERED")
+            first_stale_row = len(final) + 3
+            if first_stale_row <= ws2.row_count:
+                ws2.batch_clear([f"A{first_stale_row}:F{ws2.row_count}"])
 
     apply_brand(sh, ws, ws2)
 
@@ -527,8 +535,6 @@ def push_to_sheets(days, _attempt=1):
     # Например: push_balance(sh, ws, days, carry_hours=-3.5)
     push_balance(sh, ws, days, carry_hours=0.0)
 
-    # Группировка строк: всё до текущего финансового периода — свёрнуто
-    _update_row_groups(sh, ws)
 
     print(f"\nЗаписано в Google Sheets: {sh.url}")
 
@@ -782,66 +788,6 @@ def _txt(color, bold=False, size=10):
 
 def _border(color, style="SOLID"):
     return {"style": style, "color": color}
-
-
-def _update_row_groups(sh, ws_summary):
-    """Групує рядки до поточного фінансового місяця і згортає їх.
-    Якщо таких рядків немає — видаляє всі існуючі групи (щоб не залишались зайві)."""
-    from datetime import date
-    import re as _re
-    today = date.today()
-    p_start, _ = period_bounds(today)
-    all_rows = ws_summary.get_all_values()
-    data_rows = all_rows[2:]
-    last_old_idx = -1
-    for i, row in enumerate(data_rows):
-        if not row or not row[0]:
-            continue
-        if not _re.match(r'\d{4}-\d{2}-\d{2}', row[0]):
-            continue
-        try:
-            row_date = date.fromisoformat(row[0])
-        except ValueError:
-            continue
-        if row_date < p_start:
-            last_old_idx = i
-
-    sheet_id = ws_summary.id
-    requests = []
-
-    # Завжди видаляємо всі існуючі групи на цьому аркуші
-    try:
-        meta = sh.fetch_sheet_metadata()
-        for s in meta.get("sheets", []):
-            if s["properties"]["sheetId"] == sheet_id:
-                for grp in s.get("rowGroups", []):
-                    r = grp["range"]
-                    requests.append({"deleteDimensionGroup": {
-                        "range": {"sheetId": sheet_id, "dimension": "ROWS",
-                                  "startIndex": r["startIndex"], "endIndex": r["endIndex"]}
-                    }})
-    except Exception:
-        pass
-
-    # Додаємо нову групу тільки якщо є рядки до поточного місяця
-    if last_old_idx >= 0:
-        group_start = 2
-        group_end = group_start + last_old_idx + 1
-        requests.append({"addDimensionGroup": {"range": {
-            "sheetId": sheet_id, "dimension": "ROWS",
-            "startIndex": group_start, "endIndex": group_end,
-        }}})
-        requests.append({"updateDimensionGroup": {
-            "dimensionGroup": {
-                "range": {"sheetId": sheet_id, "dimension": "ROWS",
-                          "startIndex": group_start, "endIndex": group_end},
-                "depth": 1, "collapsed": True,
-            },
-            "fields": "collapsed",
-        }})
-
-    if requests:
-        sh.batch_update({"requests": requests})
 
 
 def apply_brand(sh, ws_summary, ws_detail):
